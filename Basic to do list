@@ -1,0 +1,124 @@
+import tkinter as tk
+from tkinter import ttk
+
+class Task:
+    def __init__(self, description, due_date=None, priority=None):
+        self.description = description
+        self.due_date = due_date
+        self.priority = priority
+        self.completed = False
+
+class CosmicToDoList:
+    def __init__(self):
+        self.tasks = []
+        self.completed_tasks = []
+
+    def add_task(self, task):
+        self.tasks.append(task)
+
+    def mark_completed(self, task_index):
+        if 1 <= task_index <= len(self.tasks):
+            completed_task = self.tasks.pop(task_index - 1)
+            completed_task.completed = True
+            self.completed_tasks.append(completed_task)
+
+    def update_task(self, task_index, new_description, new_due_date, new_priority):
+        if 1 <= task_index <= len(self.tasks):
+            task = self.tasks[task_index - 1]
+            task.description = new_description
+            task.due_date = new_due_date
+            task.priority = new_priority
+
+    def remove_task(self, task_index):
+        if 1 <= task_index <= len(self.tasks):
+            self.tasks.pop(task_index - 1)
+
+class CosmicToDoListApp:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Cosmic To-Do List")
+
+        self.todo_list = CosmicToDoList()
+
+        self.task_entry = ttk.Entry(master, width=40)
+        self.add_button = ttk.Button(master, text="Summon Task", command=self.add_task)
+        self.task_listbox = tk.Listbox(master, selectmode=tk.SINGLE, height=15)
+        self.complete_button = ttk.Button(master, text="Ascend Task", command=self.mark_completed)
+        self.update_button = ttk.Button(master, text="Alter Task", command=self.update_task)
+        self.remove_button = ttk.Button(master, text="Vanish Task", command=self.remove_task)
+
+        self.task_entry.grid(row=0, column=0, padx=10, pady=10)
+        self.add_button.grid(row=0, column=1, padx=10, pady=10)
+        self.task_listbox.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        self.complete_button.grid(row=2, column=0, padx=10, pady=10)
+        self.update_button.grid(row=2, column=1, padx=10, pady=10)
+        self.remove_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+
+        self.task_listbox.bind("<Double-1>", lambda event: self.update_task())
+        self.update_task_listbox()
+
+    def add_task(self):
+        task_description = self.task_entry.get()
+        if task_description:
+            task = Task(task_description)
+            self.todo_list.add_task(task)
+            self.update_task_listbox()
+            self.task_entry.delete(0, tk.END)
+
+    def update_task_listbox(self):
+        self.task_listbox.delete(0, tk.END)
+        for task in self.todo_list.tasks:
+            self.task_listbox.insert(tk.END, task.description)
+
+    def mark_completed(self):
+        selected_index = self.task_listbox.curselection()
+        if selected_index:
+            selected_index = selected_index[0]
+            self.todo_list.mark_completed(selected_index)
+            self.update_task_listbox()
+
+    def update_task(self):
+        selected_index = self.task_listbox.curselection()
+        if selected_index:
+            selected_index = selected_index[0]
+            task = self.todo_list.tasks[selected_index]
+
+            update_window = tk.Toplevel(self.master)
+            update_window.title("Cosmic Task Alteration")
+
+            ttk.Label(update_window, text="New Description:").grid(row=0, column=0, padx=10, pady=5)
+            new_description_entry = ttk.Entry(update_window, width=30)
+            new_description_entry.grid(row=0, column=1, padx=10, pady=5)
+            new_description_entry.insert(tk.END, task.description)
+
+            ttk.Label(update_window, text="New Due Date:").grid(row=1, column=0, padx=10, pady=5)
+            new_due_date_entry = ttk.Entry(update_window, width=30)
+            new_due_date_entry.grid(row=1, column=1, padx=10, pady=5)
+            new_due_date_entry.insert(tk.END, task.due_date)
+
+            ttk.Label(update_window, text="New Priority:").grid(row=2, column=0, padx=10, pady=5)
+            new_priority_entry = ttk.Entry(update_window, width=30)
+            new_priority_entry.grid(row=2, column=1, padx=10, pady=5)
+            new_priority_entry.insert(tk.END, task.priority)
+
+            update_button = ttk.Button(update_window, text="Alter Fate", command=lambda: self.update_task_details(
+                selected_index, new_description_entry.get(), new_due_date_entry.get(), new_priority_entry.get()))
+            update_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def update_task_details(self, index, new_description, new_due_date, new_priority):
+        task = self.todo_list.tasks[index]
+        task.description = new_description
+        task.due_date = new_due_date
+        task.priority = new_priority
+        self.update_task_listbox()
+
+    def remove_task(self):
+        selected_index = self.task_listbox.curselection()
+        if selected_index:
+            selected_index = selected_index[0]
+            self.todo_list.remove_task(selected_index)
+            self.update_task_listbox()
+
+root = tk.Tk()
+app = CosmicToDoListApp(root)
+root.mainloop()
